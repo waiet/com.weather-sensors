@@ -1,6 +1,10 @@
 {
     "id": "com.weather-sensors",
-    "sdk": 2,
+    "sdk": 3,
+	"platforms": [
+      "local",
+      "cloud"
+    ],
     "name": {
         "en": "Wireless Weather Sensors",
         "nl": "Draadloze Weersensoren"
@@ -12,8 +16,8 @@
     "brandColor": "#3E8EFE",
     "keywords": ["Weather sensor", "Alecto", "Auriol", "Cresta", "Esic", "Labs", "LaCrosse", "TFA", "Orgeon Scientific", "Rubicson", "UPM"],
     "category": "climate",
-    "version": "2.5.2",
-    "compatibility": ">=2.0.0",
+    "version": "2.6.0",
+    "compatibility": ">=5.0.0",
     "author": {
         "name": "Ramón Baas"
     },
