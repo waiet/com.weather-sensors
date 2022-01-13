@@ -1,0 +1,10 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Forecast",
+    "nl": "Voorspelling"
+  },
+  "icon": "./drivers/temphumbar/assets/forecast.svg",
+  "getable": true,
+  "setable": false
+}

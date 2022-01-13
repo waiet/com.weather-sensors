@@ -17,18 +17,23 @@ const SensorDevice = require('../sensor/device.js')
 class TempDriver extends Homey.Driver {
 
   onPair(socket) {
-    this.log('Pairing started')
+    this.log('Pairing started temp')
 
-    socket.on('list_devices', (data, callback) => {
-      let SensorDriver = Homey.ManagerDrivers.getDriver('sensor')
-      let devices = SensorDriver.getSensors('T')
-      callback(null, devices)
-    })
+    const listDevices = async function (t) {
+      t.log('listDevices')
+      let SensorDriver = t.homey.drivers.getDriver('sensor');
+      let devices = SensorDriver.getSensors('T');
+      t.log('devices ' + devices);
+      t.log('devices length ' + devices.length);
+      return devices;
+    }
+
+    socket.setHandler('list_devices', () => listDevices(this));
   }
 
   onMapDeviceClass(device) {
-    this.log('Mapping device', device.getName())
-    return SensorDevice
+    this.log('Mapping device', device.getName());
+    return SensorDevice;
   }
 
 }

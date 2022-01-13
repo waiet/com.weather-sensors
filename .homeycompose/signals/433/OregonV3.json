@@ -1,0 +1,19 @@
+{
+  "agc": [
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
+  ],
+  "sof": [
+    1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
+  ],
+  "eof": [],
+  "words": [
+    [0, 1],
+    [1, 0]
+  ],
+  "manchesterUnit": 488,
+  "manchesterMaxUnits": 2,
+  "sensitivity": 0,
+  "minimalLength": 60,
+  "maximalLength": 140
+}

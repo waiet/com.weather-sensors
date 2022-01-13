@@ -1,0 +1,85 @@
+{
+  "id": "com.weather-sensors",
+  "sdk": 3,
+  "platforms": [
+    "local",
+    "cloud"
+  ],
+  "name": {
+    "en": "Wireless Weather Sensors",
+    "nl": "Draadloze Weersensoren"
+  },
+  "description": {
+    "en": "Reads data from several brands of wireless weather sensors.",
+    "nl": "Leest data van verschillende merken draadloze weersensoren."
+  },
+  "brandColor": "#3E8EFE",
+  "keywords": [
+    "Weather sensor",
+    "Alecto",
+    "Auriol",
+    "Cresta",
+    "Esic",
+    "Labs",
+    "LaCrosse",
+    "TFA",
+    "Orgeon Scientific",
+    "Rubicson",
+    "UPM"
+  ],
+  "category": "climate",
+  "version": "2.6.0",
+  "compatibility": ">=5.0.0",
+  "author": {
+    "name": "Ramón Baas"
+  },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Jilles Miedema",
+        "email": "athom.jilles.miedema@gmail.com"
+      },
+      {
+        "name": "Marcel Mol",
+        "email": "marcel@mesa.nl"
+      }
+    ]
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "rjwbaas1"
+      }
+    }
+  },
+  "bugs": {
+    "url": "https://github.com/nlrb/com.weather-sensors/issues"
+  },
+  "source": "https://github.com/nlrb/com.weather-sensors",
+  "homeyCommunityTopicId": 23532,
+  "images": {
+    "large": "./assets/images/large.jpg",
+    "small": "./assets/images/small.jpg"
+  },
+  "permissions": [
+    "homey:wireless:433",
+    "homey:manager:api"
+  ],
+  "api": {
+    "getSensors": {
+      "method": "GET",
+      "path": "/getSensors/",
+      "public": true
+    },
+    "getProtocols": {
+      "method": "GET",
+      "path": "/getProtocols/",
+      "public": true
+    },
+    "getStatistics": {
+      "method": "GET",
+      "path": "/getStatistics/",
+      "public": true
+    }
+  }
+}

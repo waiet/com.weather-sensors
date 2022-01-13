@@ -1,30 +1,16 @@
 'use strict'
 
-const Homey = require('homey')
 
-module.exports = [
-    {
-        method: 'GET',
-        path: '/getSensors/',
-        public: true,
-        fn: function(args, callback) {
-          callback(null, Homey.app.getSensors());
-        }
+module.exports = {
+    async getSensors({ homey, query }) {
+        return await homey.app.getSensors();
     },
-    {
-        method: 'GET',
-        path: '/getProtocols/',
-        public: true,
-        fn: function(args, callback) {
-          callback(null, Homey.app.getProtocols());
-        }
+
+    async getProtocols({ homey, query }) {
+        return await homey.app.getProtocols();
     },
-    {
-        method: 'GET',
-        path: '/getStatistics/',
-        public: true,
-        fn: function(args, callback) {
-          callback(null, Homey.app.getStatistics());
-        }
+
+    async getStatistics({ homey, query }) {
+        return await homey.app.getStatistics();
     }
-];
+};

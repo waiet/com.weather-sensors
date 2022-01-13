@@ -4,44 +4,56 @@ const Homey = require('homey')
 
 const protocols = require('protocols')
 const utils = require('utils')
-const locale = Homey.ManagerI18n.getLanguage() == 'nl' ? 'nl' : 'en' // only Dutch & English supported
 
 class WeatherSensorApp extends Homey.App {
 
 	// Register all needed signals with Homey
-	registerSignals(setting) {
+	async registerSignals(setting) {
 		for (let s in protocols) {
+			this.log('protocol  ' +  s)
 			let signal = new protocols[s];
-			this.protocols[s] = { id: s, name: signal.getName(), hint: signal.getHint(locale) };
+			this.protocols[s] = { id: s, name: signal.getName(), hint: signal.getHint(this.getLocale())};
 			if (setting && setting[s]) {
 				if (setting[s].watching && this.signals[s] === undefined) {
 					// Register signal defitinion with Homey
 					let gs = signal.getSignal();
-					this.log('Registering signal', gs.def);
-					this.signals[s] = new Homey.Signal433(gs.def);
-					this.signals[s].register((err, success) => {
-						if (err != null) {
-							utils.debug('Signal', s, '; err', err, 'success', success);
-						} else {
-							utils.debug('Signal', s, 'registered.');
-							// Register data receive event
-							this.signals[s].on('payload', (payload, first) => {
-								signal.debug('Received payload for', signal.getName());
-								signal.debug(payload.length, payload);
-								if (signal.parser(payload)) {
-									if (typeof this.update === 'function') {
-										this.update(signal);
-										let stats = signal.getStatistics();
-										// Only send needed statistics
-										Homey.ManagerApi.realtime('stats_update', { protocol: s, stats: { total: stats.total, ok: stats.ok } });
-									}
-								}
-							})
-						}
-					})
+					try {
+						this.signals[s] = this.homey.rf.getSignal433(gs.def);
+				    } catch (error) {
+						utils.debug('Signal', s, '; error', error);
+					}
+					if(this.signals[s]){
+						await this.signals[s].enableRX();
+
+					    // on a payload event		
+					    //this.signals[s].on("payload", function (payload, first) {
+						//	this.log(`received data: ${payload} isRepetition ${!first}`);
+	  				    //});
+  
+	  				    // on a command event
+	  				    this.signals[s].on("cmd", function (cmdId, first) {
+						    this.log(`received command: ${cmdId} isRepetition: ${!first}`);
+						});
+
+						utils.debug('Signal', s, 'registered.');
+						 // Register data receive event
+						this.signals[s].on('payload', function (payload, first) {
+							this.log('payload');
+				 			signal.debug('Received payload for', signal.getName());
+				 			signal.debug(payload.length, payload);
+				 			if (signal.parser(payload)) {
+				 				this.log('signal.parser')
+				 				if (typeof this.update === 'function') {
+				 					this.log('update')
+				 					this.update(signal);
+				 					let stats = signal.getStatistics();
+				 					// Only send needed statistics
+				 					this.homey.api.realtime('stats_update', { protocol: s, stats: { total: stats.total, ok: stats.ok } });
+				 				}
+				 			}
+				 		})
+					}
 				} else if (!setting[s].watching && this.signals[s] !== undefined) {
-					// Un-register signal with Homey
-					this.signals[s].unregister()
 					delete this.signals[s]
 					utils.debug('Signal', s, 'unregistered.')
 				}
@@ -49,34 +61,31 @@ class WeatherSensorApp extends Homey.App {
 		}
 	}
 
-	onInit() {
+	async onInit() {
 		this.log('WeatherSensorApp is running...')
 		this.signals = {}
 		this.protocols = {}
-		let sensorDriver = Homey.ManagerDrivers.getDriver('sensor')
-		// Only start updating devices once the driver is ready for it
-		sensorDriver.ready(() => {
-			this.update = sensorDriver.update.bind(sensorDriver)
-		})
 
 		// Read app settings for protocol selection
-		let setting = Homey.ManagerSettings.get('protocols');
-		if (setting == null) {
+		let setting = this.homey.settings.get('protocols');
+
+		if (setting == null || Object.keys(setting).length === 0  || true) {
 			// No setting? Register all signals
 			setting = {}
-			let ws = utils.WeatherSignal.get()
-			for (let sig in ws) {
-				let s = ws[sig]
+			let protocolNames = Object.keys(protocols)
+			for (let sig in protocolNames) {
+				let s = protocolNames[sig]
 				setting[s] = { watching: true }
 			}
-			Homey.ManagerSettings.set('protocols', setting)
+			this.homey.settings.set('protocols', setting)
 		}
+		
 		this.registerSignals(setting)
 
 		// Catch setting changes
-		Homey.ManagerSettings.on('set', key => {
+		this.homey.settings.on('set', key => {
 			if (key === 'protocols') {
-				let setting = Homey.ManagerSettings.get('protocols')
+				let setting = this.homey.settings.get('protocols')
 				if (setting != null) {
 					this.registerSignals(setting)
 				}
@@ -85,9 +94,13 @@ class WeatherSensorApp extends Homey.App {
 
 	}
 
+	getLocale(){
+		return this.homey.i18n.getLanguage() == 'nl' ? 'nl' : 'en'
+	}
+
 	// API exported functions
 	getSensors() {
-		let driver = Homey.ManagerDrivers.getDriver('sensor')
+		let driver = this.homey.drivers.getDriver('sensor')
 		if (driver !== undefined && typeof driver.getAllSensors === 'function') {
 			return driver.getAllSensors()
 		}

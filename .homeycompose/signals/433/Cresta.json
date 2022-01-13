@@ -1,0 +1,15 @@
+{
+  "sof": [
+    1,1,0,0,1,1,0,1,0,1,0,0,1,0,1
+  ],
+  "eof": [],
+  "words": [
+    [0, 1],
+    [1, 0]
+  ],
+  "manchesterUnit": 500,
+  "manchesterMaxUnits": 3,
+  "sensitivity": 0,
+  "minimalLength": 74,
+  "maximalLength": 119
+}

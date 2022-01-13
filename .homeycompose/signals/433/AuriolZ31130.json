@@ -1,0 +1,11 @@
+{
+  "sof": [],
+  "words": [
+    [400, 1000],
+    [400, 2000]
+  ],
+  "eof": [400, 4000],
+  "sensitivity": 0.2,
+  "minimalLength": 36,
+  "maximalLength": 36
+}

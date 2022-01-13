@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 const SensorDevice = require('./device.js')
 
 const Homey = require('homey')
-const locale = Homey.ManagerI18n.getLanguage() == 'nl' ? 'nl' : 'en' // only Dutch & English supported
+const locale = 'en' // only Dutch & English supported
 
 const ACTIVE = 1;
 const INACTIVE = 2;
@@ -19,20 +19,6 @@ const INACTIVE = 2;
 var inactiveTime = 180000; // 30 mins
 var activityNotifications = 0; // no notifications
 
-function updateAppSettings() {
-	let appSettings = Homey.ManagerSettings.get('app');
-	if (appSettings) {
-		inactiveTime = appSettings.inactive * 1000;
-		activityNotifications = appSettings.notify;
-	}
-}
-updateAppSettings();
-
-Homey.ManagerSettings.on('set', function(name) {
-	if (name === 'app') {
-		updateAppSettings();
-	}
-});
 
 const capability = {
 	temperature: 'measure_temperature',
@@ -67,20 +53,43 @@ class SensorDriver extends Homey.Driver {
     this.Sensors = new Map() // all sensors we've found
     this.Devices = new Map() // all devices that have been added
 	  // Set up check to mark devices inactive, remove sensors
-    setInterval(this.healthCheck.bind(this), 1000)
-  }
+		this.homey.setInterval(this.healthCheck.bind(this), 1000)
+		
+		this.homey.settings.on('set', function(name) {
+			if (name === 'app') {
+				this.updateAppSettings();
+			}
+		});
+
+
+		this.homey.app.update = this.update.bind(this)
+
+		this.updateAppSettings();
+	}
+	
+	updateAppSettings() {
+		this.log('update settings')
+		let appSettings = this.homey.settings.get('app');
+		if (appSettings) {
+			inactiveTime = appSettings.inactive * 1000;
+			activityNotifications = appSettings.notify;
+		}
+	}
+
 
   // Generic sensor pairing (NOT USED)
   onPair(socket) {
-    this.log('Pairing started')
+    this.log('Pairing started sensor')
 
-    socket.on('list_devices', (data, callback) => {
-      let devices = []
-      for (let t in genericType) {
-        devices = devices.concat(this.getSensors(t))
-      }
-      callback(null, devices)
-    })
+		async function listDevices(sensorT){
+			let devices = []
+			for (let t in genericType) {
+				devices = devices.concat(sensorT)
+			}
+			return devices
+		}
+
+    //socket.setHandler('list_devices', listDevices(this.getSensors(t)));
   }
 
   // heathCheck: check if sensor values keep being updated
@@ -102,11 +111,11 @@ class SensorDriver extends Homey.Driver {
       let last = device.getSetting('update')
   		if (device.getAvailable() && now - Date.parse(last) > inactiveTime) {
   			this.log('Marking', key, 'as inactive')
-  			device.setUnavailable(Homey.__('error.no_data', { since: last }))
+  			device.setUnavailable(this.homey.__('error.no_data', { since: last }))
 					.catch(err => this.error('Cannot mark device as unavailable', err.message))
   			if (activityNotifications & INACTIVE) {
-  				Homey.ManagerNotifications.registerNotification({
-  					excerpt: Homey.__('notification.inactive', { name: device.getName() })
+  				this.homey.notifications.registerNotification({
+  					excerpt: this.homey.__('notification.inactive', { name: device.getName() })
   				});
   			}
   		}
@@ -115,6 +124,7 @@ class SensorDriver extends Homey.Driver {
 
   // Update the sensor data
   update(signal) {
+		this.log('Signal update')
   	let result = signal.getResult();
   	if (this.Sensors !== undefined && typeof result !== 'string' && result != null) {
   		let when = result.lastupdate.toString();
@@ -172,7 +182,7 @@ class SensorDriver extends Homey.Driver {
   			this.Sensors.set(did, { raw: newvalue, display: display });
   			//signal.debug(this.Sensors);
   			// Send an event to the front-end as well for the app settings page
-  			Homey.ManagerApi.realtime('sensor_update', Array.from(this.Sensors.values()).map(x => x.display));
+  			this.homey.api.realtime('sensor_update', Array.from(this.Sensors.values()).map(x => x.display));
   		} else {
   			signal.debug('ERROR: cannot determine sensor type for data', newvalue);
   		}
@@ -203,7 +213,7 @@ class SensorDriver extends Homey.Driver {
   _mapValue(cap, val) {
   	// language mapping for string type values
   	if (typeof val === 'string') {
-  		val = Homey.__('mobile.' + cap + '.' + val)
+  		val = this.homey.__('mobile.' + cap + '.' + val)
   	}
   	return val;
   }
@@ -229,7 +239,9 @@ class SensorDriver extends Homey.Driver {
 
   // getSensors: return a list of sensors of type <x>
   getSensors(type) {
-  	var list = [];
+		this.log('test1')
+		var list = [];
+		this.log('this.Sensors size ' + this.Sensors.size)
   	for (let i of this.Sensors.keys()) {
   		let val = this.Sensors.get(i);
   		if (type != null && val.raw.type == type) {
@@ -256,7 +268,8 @@ class SensorDriver extends Homey.Driver {
   			}
   		  list.push(device);
   		}
-  	}
+		}
+		this.log('test2')
   	return list;
   }
 

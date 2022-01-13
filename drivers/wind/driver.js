@@ -19,16 +19,18 @@ class WindDriver extends Homey.Driver {
   onPair(socket) {
     this.log('Pairing started')
 
-    socket.on('list_devices', (data, callback) => {
-      let SensorDriver = Homey.ManagerDrivers.getDriver('sensor')
-      let devices = SensorDriver.getSensors('W')
-      callback(null, devices)
-    })
+    const listDevices = async function (t) {
+      let SensorDriver = t.homey.drivers.getDriver('sensor');
+      let devices = SensorDriver.getSensors('W');
+      return devices;
+    }
+
+   socket.setHandler('list_devices', () => listDevices(this));
   }
 
   onMapDeviceClass(device) {
-    this.log('Mapping device', device.getName())
-    return SensorDevice
+    this.log('Mapping device', device.getName());
+    return SensorDevice;
   }
 
 }
